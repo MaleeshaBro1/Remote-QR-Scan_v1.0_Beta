@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MB Data Creation</title>
+    <title>Remote QR Scan</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #ee4343, #f05555);
+            background: white;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,7 +17,7 @@
         }
 
         h2 {
-            color: #fff;
+            color: #ff0000;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
@@ -49,7 +49,7 @@
             border: none;
             border-radius: 10px;
             background: #6a11cb;
-            background: linear-gradient(to right, #e62727, #e96262);
+            background: red;
             color: white;
             font-size: 16px;
             cursor: pointer;
@@ -57,7 +57,7 @@
         }
 
         button:hover {
-            background: linear-gradient(to right, #e76e6e, #e77641);
+            background: rgb(255, 71, 71);
             transform: scale(1.05);
         }
 
@@ -79,7 +79,7 @@
     </style>
 </head>
 <body>
-    <h2>MB Data Creation</h2>
+    <h2>Remote QR Scan</h2>
     <form id="dataForm">
         <label for="qr_reader">QR Code Scanner</label>
         <div id="qr-reader" style="width:300px;"></div>
@@ -136,7 +136,7 @@
             }
 
             try {
-                const res = await fetch("http://192.168.8.159:5000/qr", {
+                const res = await fetch("/qr", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

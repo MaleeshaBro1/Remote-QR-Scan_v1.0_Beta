@@ -1,4 +1,4 @@
-# QR Bike Tracking System
+# Remote QR Inventory Tracking System
 
 A web application used to track inventory using QR codes.
 

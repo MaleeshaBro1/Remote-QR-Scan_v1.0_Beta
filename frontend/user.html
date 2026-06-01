@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MB Data Creation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #ee4343, #f05555);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        h2 {
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        form {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input {
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #6a11cb;
+            background: linear-gradient(to right, #e62727, #e96262);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #e76e6e, #e77641);
+            transform: scale(1.05);
+        }
+
+        #qr-reader {
+            margin: 10px auto;
+            border: 3px solid #fff;
+            border-radius: 15px;
+        }
+
+        @media (max-width: 768px) {
+            table, th, td {
+                font-size: 14px;
+            }
+
+            button {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>MB Data Creation</h2>
+    <form id="dataForm">
+        <label for="qr_reader">QR Code Scanner</label>
+        <div id="qr-reader" style="width:300px;"></div>
+
+        <label for="qr_code">QR Code:</label>
+        <input type="text" id="qr_code" name="qr_code" placeholder="Scanned QR will appear here" required>
+
+        <label for="district">District:</label>
+        <input type="text" id="district" name="district" placeholder="District" required>
+
+        <label for="dealership">Dealership:</label>
+        <input type="text" id="dealership" name="dealership" placeholder="Dealership" required>
+
+        <button type="submit">Submit</button>
+    </form>
+
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+         function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById("qr_code").value = decodedText;
+
+            alert("QR Code Scanned: " + decodedText);
+
+            html5QrcodeScanner.clear().then(() => {
+                console.log("QR Scanner stopped after scan");
+            }).catch(err => console.error("Failed to stop scanner", err));
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            { fps: 10, qrbox: 250 }
+        );
+
+        html5QrcodeScanner.render(onScanSuccess);
+
+
+
+        // Form submission
+        document.getElementById("dataForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const qr_code = document.getElementById("qr_code").value;
+            const district = document.getElementById("district").value;
+            const dealership = document.getElementById("dealership").value;
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                alert("You are not logged in!");
+                window.location.href = "login.html";
+                return;
+            }
+
+            try {
+                const res = await fetch("http://192.168.8.159:5000/qr", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({ qr_code, district, dealership })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("Data created successfully!");
+                    e.target.reset();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Server error");
+            }
+        });
+    </script>
+</body>
+</html>

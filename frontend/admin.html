@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #ee3535, #e55b6d);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        h2 {
+            margin-top: 40px;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        button {
+            margin: 20px 0;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(to right, #ff2853, #ffb2cb);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(to right, #fca3a3, #fc5c7d);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            max-width: 1000px;
+            margin-bottom: 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        th, td {
+            text-align: center;
+            padding: 12px;
+        }
+
+        th {
+            background-color: #ff1937;
+            color: white;
+            font-size: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #d1d9ff;
+        }
+
+        @media (max-width: 768px) {
+            table, th, td {
+                font-size: 14px;
+            }
+
+            button {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Admin Dashboard</h2>
+    <button onclick="exportExcel()">Export to Excel</button>
+    <table border="1" id="qrTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>QR Code</th>
+                <th>District</th>
+                <th>Dealership</th>
+                <th>Username</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "admin_login.html";
+        }
+
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.role !== "admin") {
+            alert("Access denied! Admins only.");
+            localStorage.removeItem("token");
+            window.location.href = "user.html";
+        }
+        async function loadData() {
+            const res = await fetch("http://192.168.8.159:5000/qrtable", {
+                headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+            });
+
+            const data = await res.json();
+            const tableBody = document.querySelector("#qrTable tbody");
+            tableBody.innerHTML = "";
+            data.forEach((item) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.qr_code}</td>
+                    <td>${item.district}</td>
+                    <td>${item.dealership}</td>
+                    <td>${item.username}</td>
+                    <td>${item.created_at}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function exportExcel() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You are not logged in!");
+                window.location.href = "login.html";
+                return;
+            }
+
+            const res = await fetch("http://192.168.8.159:5000/qr/export", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                alert("Error: " + error.error);
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "qr_data.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        loadData();
+        setInterval(loadData, 5000);
+    </script>
+</body>
+</html>

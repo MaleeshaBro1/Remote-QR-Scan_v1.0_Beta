@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>User Login</title>
+    </head>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff4b2b, #ff416c);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h2 {
+            text-align: center;
+            color: #ff4b2b;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            align-self: flex-start;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 94%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #ff4b2b;
+            outline: none;
+            box-shadow: 0 0 5px rgba(255, 75, 43, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #ff4b2b, #ff416c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 5px 15px rgba(255, 65, 108, 0.4);
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+        }
+    </style>
+
+    <body>
+        <div class="container">
+            <h2>MB User Login</h2>
+            <form id="loginForm">
+                <div class="message" id="message">
+                    <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    <button type="submit">Login</button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            const form = document.getElementById("loginForm");
+            const messageDiv = document.getElementById("message");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const username = document.getElementById("username").value;
+                const password = document.getElementById("password").value;
+
+                try {
+                    const res = await fetch("http://localhost:5000/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        localStorage.setItem("token", data.token);
+                        window.location.href = "http://localhost:5000/user.html";
+                    }else{
+                        messageDiv.style.color = "red";
+                        messageDiv.textContent = data.error || "Invalid username or password";
+                        }
+                    } catch (err) {
+                        messageDiv.style.color = "red";
+                        messageDiv.textContent = "Server error";
+                    }
+
+                });
+        </script>
+    </body>
+</html>

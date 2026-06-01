@@ -10,7 +10,7 @@ const ExcelJS = require('exceljs');
 const app = express();
 
 const path = require("path");
-app.use(express.static(path.join(__dirname, "MB_Scan"))); 
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 const PORT = 5000;
 const SECRET_KEY = 'super_secret';

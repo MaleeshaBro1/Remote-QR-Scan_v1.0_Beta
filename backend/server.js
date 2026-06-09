@@ -114,15 +114,29 @@ app.get("/protected", authenticateToken, (req, res) => {
 app.post("/qr", authenticateToken, (req, res) => {
   const { qr_code, district, dealership } = req.body;
   if (!qr_code) return res.status(400).json({ error: "QR code required" });
-
-  db.run(
-    `INSERT INTO qr_entries (qr_code, district, dealership, user_id) VALUES (?, ?, ?, ?)`,
-    [qr_code, district, dealership, req.user.id],
-    function(err) {
-      if (err) return res.status(400).json({ error: err.message });
-      res.json({ id: this.lastID, qr_code, district, dealership });
+  
+  db.get(
+    "SELECT * FROM qr_entries WHERE qr_code = ?",
+    [qr_code],
+    (err, row) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      
+      if (row) {
+        return res.status(400).json({
+          error: "Chassis number already exists",
+        });
+      }
+      db.run(
+        `INSERT INTO qr_entries (qr_code, district, dealership, user_id) VALUES (?, ?, ?, ?)`,
+          [qr_code, district, dealership, req.user.id],
+            function(err) {
+              if (err) return res.status(400).json({ error: err.message });
+                res.json({ id: this.lastID, qr_code, district, dealership });
+          });
     }
-  );
+  )
 });
 
 // Get all QR entries (any user)
